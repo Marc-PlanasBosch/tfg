@@ -1,0 +1,109 @@
+Poquemon v1
+
+nb_players 4
+nb_poquemon 1
+nb_rounds 400
+nb_ghost_wall 6
+nb_point 20
+nb_stone 5
+nb_scope 2
+nb_attack 4
+nb_defense 4
+
+player_regen_time 40
+wall_change_time 30
+point_regen_time 50
+stone_regen_time 85
+scope_regen_time 65
+attack_regen_time 55
+defense_regen_time 55
+battle_reward 15
+
+max_scope 8
+max_stone 2
+
+rows 15
+cols 31
+
+names ? ? ? ?
+
+round 0
+
+board
+    
+   0000000000111111111122222222223
+   0123456789012345678901234567890
+
+00 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+01 XSXP.......P.......P.......PXSX
+02 X.X.......XXXX.R.XXXX.......X.X
+03 X.X.......X..XXMXX..X.......X.X
+04 XPX.........................X.X
+05 X.X..XXXPXXX...P...XXXPXXX..X.X
+06 X.X..XD...AX.X.X.X.XA...DX..X.X
+07 X.MP.XXXMXXXPX.S.XPXXXMXXX.PM.X
+08 X.X..XA...DX.X.X.X.XD...AX..X.X
+09 X.X..XXXPXXX...P...XXXPXXX..X.X
+10 X.X.........................XPX
+11 X.X.......X..XXMXX..X.......X.X
+12 X.X.......XXXX.R.XXXX.......X.X
+13 XSXP.......P.......P.......PXSX
+14 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+status 0 0 0 0
+
+poquemon
+id  ply	i   j   at	def	ab	ped	pts	time alive
+0	0	2	6	1	1	1	0	0	0       a
+1	1	2	24	1	1	1	0	0	0       a
+2	2	12	6	1	1	1	0	0	0       a
+3	3	12	24	1	1	1	0	0	0       a
+
+walls
+i	j	time present
+3	15	 30     1
+7	2	 30     1
+7	8	 30     1
+7	22	 30     1
+7	28	 30     1
+11	15	 30     1
+
+bonus
+type	i	j	pts time  present
+P		1	3	500  0     1
+P		1	11	200  0     1
+P		1	19	200  0     1
+P		1	27	500  0     1
+P		4	1	500  0     1
+P		5	8	100  0     1
+P		5	15	300  0     1
+P		5	22	100  0     1
+P		7	3	300  0     1
+P		7	12	400  0     1
+P		7	18	400  0     1
+P		7	27	300  0     1
+P		9	8	100  0     1
+P		9	15	300  0     1
+P		9	22	100  0     1
+P		10	29	500  0     1
+P		13	3	500  0     1
+P		13	11	200  0     1
+P		13	19	200  0     1
+P		13	27	500  0     1
+S		1	1	0    0    1
+S		1	29	0    0    1
+S		7	15	0    0    1
+S		13	01	0    0    1
+S		13	29	0    0    1
+R		2	15	0    0     1
+R		12	15	0    0     1
+D		6	6	0    0     1
+D		6	24	0    0     1
+D		8	10	0    0     1
+D		8	20	0    0     1
+A		6	10	0    0     1
+A		6	20	0    0     1
+A		8	6	0    0     1
+A		8	24	0    0     1
+
+
