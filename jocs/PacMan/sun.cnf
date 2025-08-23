@@ -1,0 +1,77 @@
+pacman v1
+nb_players 4
+nb_rounds 800
+nb_ghosts 4
+regen_time 60
+power_time 40
+pn_dot      1
+pn_pill     5
+pn_bonus   10
+pn_ghost   50
+pn_pacman 100
+cage 17 18
+rows 39
+cols 39
+names ? ? ? ?
+round 0
+***************************************
+******####*******************####******
+****************BBBBBBB****************
+***###*******BBB.......BBB*******###***
+***#C*****BBB....#...#....BBB*****C#***
+***#**#**B.......#...#.......B**#**#***
+*#***##MB........#...#........BM##***#*
+*#****MBB........#.M.#........BBM****#*
+*#****BB.#....BBXX...XXBB....#.BB****#*
+*#***B..##...BBBBBX.XBBBBB...##..B***#*
+****B......#BBBBBX...XBBBBB#......B****
+****B.....##BBBBBX.M.XBBBBB##.....B****
+****B.....BBBBBBBX...XBBBBBBB.....B****
+***B.....BBBBB#BBBX.XBBB#BBBBB.....B***
+***B....BBBBB##B*##.##*B##BBBBB....B***
+***B....BBBBBBB*#..C..#*BBBBBBB....B***
+**B.....XBBBBB*#.*###*.#*BBBBBX.....B**
+**B.####XBXXXB#.*X---X*.#BXXXBX####.B**
+**B......X...X#.#-----#.#X...X......B**
+**B....M...M...C#-----#C...M...M....B**
+**B......X...X#.#-----#.#X...X......B**
+**B.####XBXXXB#.*X---X*.#BXXXBX####.B**
+**B.....XBBBBB*#.*###*.#*BBBBBX.....B**
+***B....BBBBBBB*#..C..#*BBBBBBB....B***
+***B....BBBBB##B*##.##*B##BBBBB....B***
+***B.....BBBBB#BBBX.XBBB#BBBBB.....B***
+****B.....BBBBBBBX...XBBBBBBB.....B****
+****B.....##BBBBBX.M.XBBBBB##.....B****
+****B......#BBBBBX...XBBBBB#......B****
+*#***B..##...BBBBBX.XBBBBB...##..B***#*
+*#****BB.#....BBXX...XXBB....#.BB****#*
+*#****MBB........#.M.#........BBM****#*
+*#***##MB........#...#........BM##***#*
+***#**#**B.......#...#.......B**#**#***
+***#C*****BBB....#...#....BBB*****C#***
+***###*******BBB.......BBB*******###***
+****************BBBBBBB****************
+******####*******************####******
+***************************************
+score 0 0 0 0
+status 0 0 0 0
+pacman 0 0 0 a
+ghost 17 18 0 a
+ghost 17 19 0 a
+ghost 17 20 0 a
+ghost 18 19 0 a
+pacman 38 38 0 a 
+ghost 20 19 0 a
+ghost 21 18 0 a
+ghost 21 19 0 a
+ghost 21 20 0 a
+pacman 38 0 0 a
+ghost 18 17 0 a
+ghost 19 17 0 a
+ghost 19 18 0 a
+ghost 20 17 0 a
+pacman 0 38 0 a 
+ghost 18 21 0 a
+ghost 19 20 0 a
+ghost 19 21 0 a
+ghost 20 21 0 a
