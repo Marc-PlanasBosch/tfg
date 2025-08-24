@@ -1,0 +1,39 @@
+# Definició del joc Dominator en format genèric
+# Aquest fitxer defineix les regles, tipus d'unitats i mecàniques del joc
+
+[GAME]
+game_name=Dominator
+version=4.0
+max_players=4
+default_rounds=200
+default_rows=37
+default_cols=37
+
+[UNIT_TYPES]
+# Format: name symbol max_health initial_health regen_rate movement_range attack_range attack_power defense can_capture can_move can_attack [abilities...]
+Farmer f 100 100 30 1 1 0 0 1 1 0
+Knight k 200 200 30 1 1 75 0 0 1 1
+Witch w 100 100 0 1 2 0 0 0 1 0 spell_haunt
+
+[RULES]
+# Format: name type [param1=value1 param2=value2 ...]
+capture_territory territory_control capture_range=1 capture_points=10
+unit_combat combat damage_min=60 damage_max=90
+witch_haunting special_effect range=2 duration=3
+
+[MECHANICS]
+# Format: name description [ability1 ability2 ...] [param1=value1 param2=value2 ...]
+territory_control "Els farmers poden capturar territori movent-se a cel·les buides" Farmer can_capture=1
+combat_system "Els knights poden atacar unitats enemigues" Knight can_attack=1 attack_range=1
+haunting_system "Les witches poden embruixar cel·les per afectar unitats enemigues" Witch spell_haunt=1
+
+[CONSTANTS]
+# Constants específiques del joc
+damage_min=60
+damage_max=90
+farmers_health=100
+knights_health=200
+witches_health=100
+farmers_regen=30
+knights_regen=30
+witches_regen=0

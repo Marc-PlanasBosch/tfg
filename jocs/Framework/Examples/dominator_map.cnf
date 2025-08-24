@@ -1,0 +1,75 @@
+# Mapa per al joc Dominator
+# Aquest fitxer defineix un mapa específic dins del joc
+
+[MAP_HEADER]
+map_name=Dominator_Classic
+map_description=Mapa clàssic de Dominator amb 4 jugadors
+rows=37
+cols=37
+nb_players=4
+nb_rounds=200
+seed=12345
+
+[MAP_GRID]
+# Format: i j cell_type [owner] [unit_id] [prop1=val1 prop2=val2 ...]
+# Murs als bordes
+0 0 Wall
+0 1 Wall
+0 2 Wall
+# ... (més murs als bordes)
+36 36 Wall
+36 35 Wall
+36 34 Wall
+
+# Murs interiors
+18 18 Wall
+18 19 Wall
+19 18 Wall
+19 19 Wall
+
+[MAP_UNITS]
+# Format: unit_type player_id x y health [prop1=val1 prop2=val2 ...]
+# Farmers del jugador 0
+Farmer 0 2 2 100
+Farmer 0 2 3 100
+Farmer 0 3 2 100
+# ... (més farmers)
+
+# Knights del jugador 0
+Knight 0 5 5 200
+Knight 0 6 5 200
+
+# Witches del jugador 0
+Witch 0 8 8 100
+
+# Units del jugador 1
+Farmer 1 2 35 100
+Farmer 1 2 34 100
+Knight 1 5 32 200
+Witch 1 8 29 100
+
+# Units del jugador 2
+Farmer 2 35 2 100
+Farmer 2 34 2 100
+Knight 2 32 5 200
+Witch 2 29 8 100
+
+# Units del jugador 3
+Farmer 3 35 35 100
+Farmer 3 34 35 100
+Knight 3 32 32 200
+Witch 3 29 29 100
+
+[MAP_OBJECTS]
+# Format: object_type x y [prop1=val1 prop2=val2 ...]
+# Objectes especials del mapa
+Bonus 10 10 points=50
+Bonus 26 26 points=50
+Bonus 10 26 points=30
+Bonus 26 10 points=30
+
+[MAP_CONSTANTS]
+# Constants específiques d'aquest mapa
+bonus_spawn_rate=0.1
+wall_density=0.15
+starting_units_per_player=20
