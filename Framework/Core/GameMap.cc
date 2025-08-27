@@ -234,7 +234,7 @@ bool GameMap::validateMap() const {
     return true;
 }
 
-std::string GameMap::getMapDescription() const {
+std::string GameMap::getMapSummary() const {
     std::ostringstream oss;
     oss << "Mapa: " << map_name << "\n";
     oss << "Descripció: " << map_description << "\n";

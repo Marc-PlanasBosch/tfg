@@ -8,6 +8,7 @@
 #include <memory>
 #include <istream>
 #include <ostream>
+#include <algorithm>
 
 /**
  * Classe base per gestionar mapes i partides de manera genèrica.
@@ -120,7 +121,7 @@ public:
     
     // Mètodes virtuals per personalitzar el comportament
     virtual bool validateMap() const;
-    virtual std::string getMapDescription() const;
+    virtual std::string getMapSummary() const;
     virtual void generateMap(int seed = -1);
     
     // Mètodes auxiliars

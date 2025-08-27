@@ -26,7 +26,7 @@ int main() {
         return 1;
     }
     
-    std::cout << "Mapa carregat: " << game_map->getMapDescription() << std::endl;
+    std::cout << "Mapa carregat: " << game_map->getMapSummary() << std::endl;
     
     // 3. Crear el tauler del joc
     auto game_board = std::make_shared<GameBoard>(game_def, game_map);
