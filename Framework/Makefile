@@ -7,6 +7,23 @@ CXXFLAGS = -std=c++17 -Wall -Wextra -O2 -g
 INCLUDES = -I./Core
 LIBS = 
 
+# Platform detection
+ifeq ($(OS),Windows_NT)
+    # Windows
+    RM = del /Q
+    RM_RF = rmdir /S /Q
+    EXE_EXT = .exe
+    PLATFORM = WINDOWS
+    MKDIR = mkdir
+else
+    # Unix/Linux/MacOS
+    RM = rm -f
+    RM_RF = rm -rf
+    EXE_EXT = 
+    PLATFORM = UNIX
+    MKDIR = mkdir -p
+endif
+
 # Directoris
 CORE_DIR = Core
 EXAMPLES_DIR = Examples
@@ -21,32 +38,46 @@ CORE_OBJECTS = $(CORE_SOURCES:$(CORE_DIR)/%.cc=$(BUILD_DIR)/%.o)
 EXAMPLES_OBJECTS = $(EXAMPLES_SOURCES:$(EXAMPLES_DIR)/%.cc=$(BUILD_DIR)/%.o)
 
 # Executables
-EXAMPLES = $(EXAMPLES_SOURCES:$(EXAMPLES_DIR)/%.cc=$(BUILD_DIR)/%)
+EXAMPLES = $(EXAMPLES_SOURCES:$(EXAMPLES_DIR)/%.cc=$(BUILD_DIR)/%$(EXE_EXT))
 
 # Objectiu principal
 all: $(BUILD_DIR) $(EXAMPLES)
 
 # Crear directori de build
 $(BUILD_DIR):
-	mkdir -p $(BUILD_DIR)
-	mkdir -p $(BUILD_DIR)/Core
-	mkdir -p $(BUILD_DIR)/Examples
+ifeq ($(PLATFORM),WINDOWS)
+	$(MKDIR) $(BUILD_DIR)
+	$(MKDIR) $(BUILD_DIR)\Core
+	$(MKDIR) $(BUILD_DIR)\Examples
+else
+	$(MKDIR) $(BUILD_DIR)
+	$(MKDIR) $(BUILD_DIR)/Core
+	$(MKDIR) $(BUILD_DIR)/Examples
+endif
 
 # Compilar classes base
 $(BUILD_DIR)/%.o: $(CORE_DIR)/%.cc
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
 
 # Compilar exemples
-$(BUILD_DIR)/%: $(EXAMPLES_DIR)/%.cc $(CORE_OBJECTS)
+$(BUILD_DIR)/%$(EXE_EXT): $(EXAMPLES_DIR)/%.cc $(CORE_OBJECTS)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) $< $(CORE_OBJECTS) -o $@ $(LIBS)
 
 # Objectiu per executar l'exemple
-run: $(BUILD_DIR)/main_example
+run: $(BUILD_DIR)/main_example$(EXE_EXT)
+ifeq ($(PLATFORM),WINDOWS)
+	cd $(BUILD_DIR) && .\main_example$(EXE_EXT)
+else
 	cd $(BUILD_DIR) && ./main_example
+endif
 
 # Netejar
 clean:
-	rm -rf $(BUILD_DIR)
+ifeq ($(PLATFORM),WINDOWS)
+	$(RM_RF) $(BUILD_DIR)
+else
+	$(RM_RF) $(BUILD_DIR)
+endif
 
 # Instal·lar (opcional)
 install:
