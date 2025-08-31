@@ -92,6 +92,22 @@ bool GameMap::parseMapHeader(std::istream& is) {
     else if (key == "seed") seed = std::stoi(value);
     else map_constants[key] = value;
     
+    // Inicialitzar la graella quan tenim totes les dimensions
+    if (key == "rows" || key == "cols") {
+        // Només inicialitzar quan tenim tant rows com cols
+        if (rows > 0 && cols > 0) {
+            grid.clear();
+            grid.resize(rows, std::vector<MapCell>(cols));
+            
+            // Omplir amb cel·les buides
+            for (int i = 0; i < rows; ++i) {
+                for (int j = 0; j < cols; ++j) {
+                    grid[i][j] = MapCell("Empty");
+                }
+            }
+        }
+    }
+    
     return true;
 }
 
@@ -104,6 +120,12 @@ bool GameMap::parseMapGrid(std::istream& is) {
     
     if (!posOk(i, j)) {
         std::cerr << "Error: Posició invàlida al mapa: " << i << ", " << j << std::endl;
+        return false;
+    }
+    
+    // Verificar que la graella estigui inicialitzada
+    if (grid.empty() || static_cast<int>(grid.size()) <= i || static_cast<int>(grid[i].size()) <= j) {
+        std::cerr << "Error: Graella del mapa no inicialitzada correctament" << std::endl;
         return false;
     }
     
@@ -226,7 +248,7 @@ bool GameMap::validateMap() const {
         return false;
     }
     
-    if (grid.empty() || grid.size() != rows || grid[0].size() != cols) {
+    if (grid.empty() || static_cast<int>(grid.size()) != rows || static_cast<int>(grid[0].size()) != cols) {
         std::cerr << "Error: Graella del mapa no inicialitzada correctament" << std::endl;
         return false;
     }

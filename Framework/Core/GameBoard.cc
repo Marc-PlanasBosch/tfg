@@ -203,6 +203,22 @@ std::vector<int> GameBoard::getScores() const {
     return current_state.scores;
 }
 
+// Implementació dels nous mètodes per a l'adaptador d'IA
+int GameBoard::getUnitOwner(int unit_id) const {
+    auto it = unit_owners.find(unit_id);
+    return (it != unit_owners.end()) ? it->second : -1;
+}
+
+int GameBoard::getUnitHealth(int unit_id) const {
+    auto it = unit_health.find(unit_id);
+    return (it != unit_health.end()) ? it->second : -1;
+}
+
+std::string GameBoard::getUnitPosition(int unit_id) const {
+    auto it = unit_positions.find(unit_id);
+    return (it != unit_positions.end()) ? it->second : "";
+}
+
 void GameBoard::printState(std::ostream& os) const {
     os << "Round " << current_state.round << std::endl;
     
@@ -352,8 +368,10 @@ void GameBoard::placeInitialUnits() {
     if (!game_map) return;
     
     // Col·locar unitats inicials segons el mapa
+    int unit_counter = 0;
     for (const auto& unit : game_map->getUnits()) {
-        addUnit(std::stoi(unit.unit_type), unit.unit_type, unit.player_id, unit.x, unit.y, unit.health);
+        addUnit(unit_counter, unit.unit_type, unit.player_id, unit.x, unit.y, unit.health);
+        unit_counter++;
     }
 }
 

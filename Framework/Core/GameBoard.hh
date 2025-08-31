@@ -86,6 +86,14 @@ public:
     virtual int getScore(int player) const;
     virtual std::vector<int> getScores() const;
     
+    // Mètodes per accedir a la informació de les unitats (per a l'adaptador d'IA)
+    virtual std::map<int, std::string> getUnitPositions() const { return unit_positions; }
+    virtual std::map<int, int> getUnitOwners() const { return unit_owners; }
+    virtual std::map<int, int> getUnitHealth() const { return unit_health; }
+    virtual int getUnitOwner(int unit_id) const;
+    virtual int getUnitHealth(int unit_id) const;
+    virtual std::string getUnitPosition(int unit_id) const;
+    
     // Mètodes per imprimir informació
     virtual void printState(std::ostream& os) const;
     virtual void printPreamble(std::ostream& os) const;

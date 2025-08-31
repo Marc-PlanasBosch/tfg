@@ -38,7 +38,18 @@ bool GameDefinition::loadFromStream(std::istream& is) {
         
         // Parsejar segons la secció actual
         if (current_section == "GAME") {
-            parseGameConstant(line);
+            // Parsejar línia de constant: key=value
+            size_t pos = line.find('=');
+            if (pos != std::string::npos) {
+                std::string key = line.substr(0, pos);
+                std::string value = line.substr(pos + 1);
+                // Eliminar espais en blanc
+                key.erase(0, key.find_first_not_of(" \t"));
+                key.erase(key.find_last_not_of(" \t") + 1);
+                value.erase(0, value.find_first_not_of(" \t"));
+                value.erase(value.find_last_not_of(" \t") + 1);
+                parseGameConstant(key, value);
+            }
         } else if (current_section == "UNIT_TYPES") {
             // Guardar la línia per parsejar-la després
             std::istringstream iss(line);
@@ -59,8 +70,21 @@ bool GameDefinition::loadFromStream(std::istream& is) {
                 return false;
             }
         } else if (current_section == "CONSTANTS") {
-            parseGameConstant(line);
+            // Parsejar línia de constant: key=value
+            size_t pos = line.find('=');
+            if (pos != std::string::npos) {
+                std::string key = line.substr(0, pos);
+                std::string value = line.substr(pos + 1);
+                // Eliminar espais en blanc
+                key.erase(0, key.find_first_not_of(" \t"));
+                key.erase(key.find_last_not_of(" \t") + 1);
+                value.erase(0, value.find_first_not_of(" \t"));
+                value.erase(value.find_last_not_of(" \t") + 1);
+                parseGameConstant(key, value);
+            }
         }
+        // Ignorar seccions desconegudes (AI_FUNCTIONS, AI_ACTIONS, AI_UTILITIES, FUNCTION_MAPPINGS)
+        // Aquestes seccions es gestionen per separat per l'AIAdapter
     }
     
     return validateConfiguration();
@@ -148,19 +172,7 @@ bool GameDefinition::parseGameMechanic(std::istream& is) {
     return true;
 }
 
-bool GameDefinition::parseGameConstant(const std::string& line) {
-    size_t pos = line.find('=');
-    if (pos == std::string::npos) return false;
-    
-    std::string key = line.substr(0, pos);
-    std::string value = line.substr(pos + 1);
-    
-    // Eliminar espais en blanc
-    key.erase(0, key.find_first_not_of(" \t"));
-    key.erase(key.find_last_not_of(" \t") + 1);
-    value.erase(0, value.find_first_not_of(" \t"));
-    value.erase(value.find_last_not_of(" \t") + 1);
-    
+bool GameDefinition::parseGameConstant(const std::string& key, const std::string& value) {
     // Processar constants especials
     if (key == "game_name") game_name = value;
     else if (key == "version") version = value;
