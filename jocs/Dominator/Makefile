@@ -1,21 +1,5 @@
-# To be able to play with the Dummy:
-#
-# 1) Copy one of:
-#
-# AIDummy.o.Linux64 (Linux   64 bits)
-# AIDummy.o.Linux32 (Linux   32 bits)
-# AIDummy.o.Win32   (Windows 32 bits)
-# AIDummy.o.Win64   (Windows 64 bits)
-# AIDummy.o.MacOS   (Mac)
-#
-# to AIDummy.o
-#
-# 2) Uncomment the following line.
-#
-#DUMMY_OBJ = AIDummy.o
-
-# Add here any extra .o player files you want to link to the executable
-EXTRA_OBJS = 
+# Simplified Makefile for Dominator
+# Assumes g++ and make are available in PATH
 
 # Config
 OPTIMIZE = 2 # Optimization level (0 to 3)
@@ -25,30 +9,20 @@ PROFILE  = 0 # Compile for profile (0 or 1)
 
 # Platform detection
 ifeq ($(OS),Windows_NT)
-    # Windows
-    RM = del /Q
-    RM_RF = if exist
-    RM_RF_END = (del /Q /S *.*) & (rmdir /S /Q)
     EXE_EXT = .exe
-    PLATFORM = WINDOWS
-    DEBUGFLAGS_WIN = -DDEBUG -g
+    RM = del /Q
 else
-    # Unix/Linux/MacOS
-    RM = rm -f
-    RM_RF = rm -rf
-    RM_RF_END = 
     EXE_EXT = 
-    PLATFORM = UNIX
-    DEBUGFLAGS_WIN = -DDEBUG -g -rdynamic
+    RM = rm -f
 endif
 
-# Do not edit past this line
-############################
+# Compiler
+CXX = g++
 
 # The following two lines will detect all your players (files matching "AI*.cc")
 
 PLAYERS_SRC = $(wildcard AI*.cc)
-PLAYERS_OBJ = $(patsubst %.cc, %.o, $(PLAYERS_SRC)) $(EXTRA_OBJS) $(DUMMY_OBJ)
+PLAYERS_OBJ = $(patsubst %.cc, %.o, $(PLAYERS_SRC))
 
 # Flags
 
@@ -75,19 +49,12 @@ LDFLAGS  = -std=c++11 -lm $(ARCHFLAGS) $(PROFILEFLAGS) $(DEBUGFLAGS) -O$(strip $
 all: Game$(EXE_EXT)
 
 clean:
-ifeq ($(PLATFORM),WINDOWS)
 	$(RM) Game$(EXE_EXT) SecGame$(EXE_EXT) *.o Makefile.deps
-else
-	$(RM_RF) Game SecGame *.o *.exe Makefile.deps
-endif
 
-# Run the game with default configuration
+# Run the game with default configuration (4 Demo players)
 run: Game$(EXE_EXT)
-ifeq ($(PLATFORM),WINDOWS)
-	.\Game$(EXE_EXT) --seed=123 Demo Demo Demo Demo --input=fixed1.cnf --output=game_output.out
-else
-	./Game --seed=123 Demo Demo Demo Demo --input=fixed1.cnf --output=game_output.out
-endif
+	./Game$(EXE_EXT) --seed=123 Demo Demo Demo Demo --input=fixed1.cnf --output=game_output.out
+
 
 # Order of objects is important here to deactivate standard sleep function.
 

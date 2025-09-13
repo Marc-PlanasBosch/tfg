@@ -37,17 +37,20 @@ bool GameDefinition::loadFromStream(std::istream& is) {
         }
         
         // Parsejar segons la secció actual
-        if (current_section == "GAME") {
-            // Parsejar línia de constant: key=value
-            size_t pos = line.find('=');
-            if (pos != std::string::npos) {
-                std::string key = line.substr(0, pos);
-                std::string value = line.substr(pos + 1);
-                // Eliminar espais en blanc
-                key.erase(0, key.find_first_not_of(" \t"));
-                key.erase(key.find_last_not_of(" \t") + 1);
-                value.erase(0, value.find_first_not_of(" \t"));
-                value.erase(value.find_last_not_of(" \t") + 1);
+        if (current_section == "GAME_INFO") {
+            // Parsejar línia: key value
+            std::istringstream iss(line);
+            std::string key, value;
+            iss >> key >> value;
+            if (!key.empty() && !value.empty()) {
+                parseGameConstant(key, value);
+            }
+        } else if (current_section == "GAME_PARAMETERS") {
+            // Parsejar línia: key value
+            std::istringstream iss(line);
+            std::string key, value;
+            iss >> key >> value;
+            if (!key.empty() && !value.empty()) {
                 parseGameConstant(key, value);
             }
         } else if (current_section == "UNIT_TYPES") {
@@ -69,7 +72,19 @@ bool GameDefinition::loadFromStream(std::istream& is) {
                 std::cerr << "Error parsejant mecànica: " << line << std::endl;
                 return false;
             }
-        } else if (current_section == "CONSTANTS") {
+        } else if (current_section == "ACTION_TYPES") {
+            std::istringstream iss(line);
+            if (!parseActionType(iss)) {
+                std::cerr << "Error parsejant tipus d'acció: " << line << std::endl;
+                return false;
+            }
+        } else if (current_section == "ACTION_STRUCTURE") {
+            std::istringstream iss(line);
+            if (!parseActionStructure(iss)) {
+                std::cerr << "Error parsejant estructura d'acció: " << line << std::endl;
+                return false;
+            }
+        }         else if (current_section == "CONSTANTS") {
             // Parsejar línia de constant: key=value
             size_t pos = line.find('=');
             if (pos != std::string::npos) {
@@ -81,6 +96,21 @@ bool GameDefinition::loadFromStream(std::istream& is) {
                 value.erase(0, value.find_first_not_of(" \t"));
                 value.erase(value.find_last_not_of(" \t") + 1);
                 parseGameConstant(key, value);
+            }
+        }
+        else if (current_section == "MAP_SECTIONS") {
+            if (!parseMapSections(line)) {
+                std::cerr << "Error parsejant seccions del mapa: " << line << std::endl;
+            }
+        }
+        else if (current_section == "MAP_OBJECTS") {
+            if (!parseMapObjects(line)) {
+                std::cerr << "Error parsejant objectes del mapa: " << line << std::endl;
+            }
+        }
+        else if (current_section == "UNIT_PARSING") {
+            if (!parseUnitParsing(line)) {
+                std::cerr << "Error parsejant format d'unitats: " << line << std::endl;
             }
         }
         // Ignorar seccions desconegudes (AI_FUNCTIONS, AI_ACTIONS, AI_UTILITIES, FUNCTION_MAPPINGS)
@@ -172,6 +202,81 @@ bool GameDefinition::parseGameMechanic(std::istream& is) {
     return true;
 }
 
+bool GameDefinition::parseActionType(std::istream& is) {
+    ActionType action_type;
+    std::string token;
+    
+    // Format: action_name action_id "param1=type1 param2=type2 ..." description
+    if (!(is >> action_type.name >> action_type.id)) {
+        return false;
+    }
+    
+    // Llegir paràmetres (entre cometes)
+    std::string params_line;
+    if (is >> params_line && params_line[0] == '"' && params_line[params_line.length()-1] == '"') {
+        // Eliminar cometes
+        params_line = params_line.substr(1, params_line.length()-2);
+        
+        // Parsejar paràmetres
+        std::istringstream param_stream(params_line);
+        std::string param;
+        while (std::getline(param_stream, param, ' ')) {
+            if (!param.empty()) {
+                action_type.parameters.push_back(param);
+            }
+        }
+    }
+    
+    // Llegir descripció (pot contenir espais)
+    std::getline(is, action_type.description);
+    
+    // Eliminar espais en blanc del principi
+    action_type.description.erase(0, action_type.description.find_first_not_of(" \t"));
+    
+    action_types[action_type.id] = action_type;
+    return true;
+}
+
+bool GameDefinition::parseActionStructure(std::istream& is) {
+    std::string action_name;
+    std::string params_line;
+    int max_per_round = 1000;
+    
+    // Format: action_name "param1=type1 param2=type2 ..." max_per_round=number
+    if (!(is >> action_name)) {
+        return false;
+    }
+    
+    // Llegir paràmetres (entre cometes)
+    if (is >> params_line && params_line[0] == '"' && params_line[params_line.length()-1] == '"') {
+        // Eliminar cometes
+        params_line = params_line.substr(1, params_line.length()-2);
+    }
+    
+    // Llegir paràmetres addicionals
+    std::string param;
+    while (is >> param) {
+        size_t pos = param.find('=');
+        if (pos != std::string::npos) {
+            std::string key = param.substr(0, pos);
+            std::string value = param.substr(pos + 1);
+            if (key == "max_per_round") {
+                max_per_round = std::stoi(value);
+            }
+        }
+    }
+    
+    // Actualitzar l'acció existent amb el max_per_round
+    for (auto& pair : action_types) {
+        if (pair.second.name == action_name) {
+            pair.second.max_per_round = max_per_round;
+            break;
+        }
+    }
+    
+    return true;
+}
+
 bool GameDefinition::parseGameConstant(const std::string& key, const std::string& value) {
     // Processar constants especials
     if (key == "game_name") game_name = value;
@@ -224,4 +329,67 @@ std::string GameDefinition::getGameDescription() const {
     oss << "Regles: " << game_rules.size() << "\n";
     oss << "Mecàniques: " << game_mechanics.size() << "\n";
     return oss.str();
+}
+
+bool GameDefinition::parseMapSections(const std::string& line) {
+    std::istringstream iss(line);
+    std::string key, value;
+    iss >> key >> value;
+    
+    if (key == "object_sections") {
+        // Parsejar llista d'objectes separats per espais
+        std::istringstream value_stream(value);
+        std::string section;
+        while (value_stream >> section) {
+            object_sections.push_back(section);
+        }
+    } else if (key == "unit_sections") {
+        // Parsejar llista d'unitats separats per espais
+        std::istringstream value_stream(value);
+        std::string section;
+        while (value_stream >> section) {
+            unit_sections.push_back(section);
+        }
+    }
+    
+    return true;
+}
+
+bool GameDefinition::parseMapObjects(const std::string& line) {
+    std::istringstream iss(line);
+    std::string object_name, symbol_str;
+    iss >> object_name >> symbol_str;
+    
+    if (!symbol_str.empty()) {
+        map_objects[object_name] = symbol_str[0];
+    }
+    
+    return true;
+}
+
+bool GameDefinition::parseUnitParsing(const std::string& line) {
+    std::istringstream iss(line);
+    std::string unit_type, format_str;
+    iss >> unit_type >> format_str;
+    
+    if (!format_str.empty()) {
+        // Parsejar format: "param1 param2 param3 ..."
+        std::istringstream format_stream(format_str);
+        std::string param;
+        std::vector<std::string> params;
+        while (format_stream >> param) {
+            params.push_back(param);
+        }
+        unit_parsing[unit_type] = params;
+    }
+    
+    return true;
+}
+
+bool GameDefinition::isObjectSection(const std::string& section) const {
+    return std::find(object_sections.begin(), object_sections.end(), section) != object_sections.end();
+}
+
+bool GameDefinition::isUnitSection(const std::string& section) const {
+    return std::find(unit_sections.begin(), unit_sections.end(), section) != unit_sections.end();
 }

@@ -61,6 +61,19 @@ public:
         GameMechanic() {}
         GameMechanic(const std::string& n, const std::string& d) : name(n), description(d) {}
     };
+    
+    /**
+     * Estructura per definir un tipus d'acció
+     */
+    struct ActionType {
+        std::string name;           // Nom del tipus d'acció
+        int id;                     // ID numèric de l'acció
+        std::vector<std::string> parameters; // Paràmetres requerits
+        std::string description;    // Descripció de l'acció
+        int max_per_round;          // Màxim d'accions d'aquest tipus per ronda
+        
+        ActionType() : id(0), max_per_round(1000) {}
+    };
 
 protected:
     std::string game_name;          // Nom del joc
@@ -73,6 +86,13 @@ protected:
     std::map<std::string, UnitType> unit_types;     // Tipus d'unitats disponibles
     std::vector<GameRule> game_rules;               // Regles del joc
     std::vector<GameMechanic> game_mechanics;       // Mecàniques del joc
+    std::map<int, ActionType> action_types;         // Tipus d'accions disponibles
+    
+    // Configuració del mapa
+    std::vector<std::string> object_sections;       // Seccions d'objectes al mapa
+    std::vector<std::string> unit_sections;         // Seccions d'unitats al mapa
+    std::map<std::string, char> map_objects;        // Objectes del mapa i els seus símbols
+    std::map<std::string, std::vector<std::string>> unit_parsing; // Format per llegir unitats
     
     std::map<std::string, std::string> game_constants; // Constants del joc
 
@@ -103,12 +123,37 @@ public:
     inline const std::vector<GameRule>& getGameRules() const { return game_rules; }
     inline const std::vector<GameMechanic>& getGameMechanics() const { return game_mechanics; }
     
+    // Mètodes per gestionar tipus d'accions
+    inline const std::map<int, ActionType>& getActionTypes() const { return action_types; }
+    inline const ActionType* getActionType(int id) const {
+        auto it = action_types.find(id);
+        return (it != action_types.end()) ? &it->second : nullptr;
+    }
+    inline const ActionType* getActionType(const std::string& name) const {
+        for (const auto& pair : action_types) {
+            if (pair.second.name == name) {
+                return &pair.second;
+            }
+        }
+        return nullptr;
+    }
+    
     // Mètodes per gestionar constants
     inline const std::map<std::string, std::string>& getGameConstants() const { return game_constants; }
     inline std::string getGameConstant(const std::string& key, const std::string& default_value = "") const {
         auto it = game_constants.find(key);
         return (it != game_constants.end()) ? it->second : default_value;
     }
+    
+    // Mètodes per gestionar configuració del mapa
+    inline const std::vector<std::string>& getObjectSections() const { return object_sections; }
+    inline const std::vector<std::string>& getUnitSections() const { return unit_sections; }
+    inline const std::map<std::string, char>& getMapObjects() const { return map_objects; }
+    inline const std::map<std::string, std::vector<std::string>>& getUnitParsing() const { return unit_parsing; }
+    
+    // Mètodes per verificar seccions del mapa
+    bool isObjectSection(const std::string& section) const;
+    bool isUnitSection(const std::string& section) const;
     
     // Mètodes virtuals per personalitzar el comportament
     virtual bool validateConfiguration() const;
@@ -119,6 +164,11 @@ protected:
     virtual bool parseUnitType(std::istream& is);
     virtual bool parseGameRule(std::istream& is);
     virtual bool parseGameMechanic(std::istream& is);
+    virtual bool parseActionType(std::istream& is);
+    virtual bool parseActionStructure(std::istream& is);
+    virtual bool parseMapSections(const std::string& line);
+    virtual bool parseMapObjects(const std::string& line);
+    virtual bool parseUnitParsing(const std::string& line);
     virtual bool parseGameConstant(const std::string& key, const std::string& value);
 };
 

@@ -69,6 +69,15 @@ int main (int argc, char** argv) {
     _my_assert(names.back().size() <= 12, "Player name too long.");
   }
 
+  // Auto-fill players to 4
+  while (names.size() < 4) {
+    if (names.empty()) {
+      names.push_back("Demo");
+    } else {
+      names.push_back(names.back()); // Repeat last player
+    }
+  }
+
   _my_assert(seed >= 0, "Missing seed?");
 
   istream* is = ifile ? new ifstream(ifile) : &cin;
