@@ -61,6 +61,11 @@ private:
     int nb_players;
     int rows, cols;
     
+    // Camps per al format Dominator
+    std::vector<int> land_;          // Terreny controlat per cada jugador
+    std::vector<int> total_score_;   // Puntuació total de cada jugador
+    std::vector<double> cpu_status_; // Estat de CPU de cada jugador
+    
     // Mapeig de posicions a unitats
     std::map<std::pair<int, int>, int> position_to_unit;
     std::map<int, std::pair<int, int>> unit_to_position;
@@ -131,6 +136,21 @@ public:
      * Afegeix puntuació a un jugador
      */
     void addScore(int player_id, int points);
+    
+    /**
+     * Imprimeix la llista d'unitats (format Dominator)
+     */
+    void printUnits(std::ostream& os) const;
+    
+    /**
+     * Imprimeix l'estat de la ronda (format Dominator)
+     */
+    void printRoundState(std::ostream& os) const;
+    
+    /**
+     * Calcula les puntuacions de terreny
+     */
+    void computeScores();
 
 protected:
     /**
@@ -142,6 +162,11 @@ protected:
      * Parseja un mapa en format original dels jocs
      */
     bool parseOriginalMap(std::istream& is);
+    
+    /**
+     * Parseja un fitxer de mapa (format Dominator)
+     */
+    bool parseMapFile(std::istream& is);
     
     /**
      * Col·loca les unitats inicials

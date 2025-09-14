@@ -68,9 +68,24 @@ public:
     void move(int direction);
     
     /**
+     * Mou una unitat específica en una direcció
+     */
+    void move(int unit_id, int direction);
+    
+    /**
      * Llança Kamehame en una direcció (BolaDeDrac2015)
      */
     void throw_kamehame(int direction);
+    
+    /**
+     * Ataca en una direcció (Dominator)
+     */
+    void attack(int direction);
+    
+    /**
+     * Ataca amb una unitat específica en una direcció (Dominator)
+     */
+    void attack(int unit_id, int direction);
     
     /**
      * Obté els moviments de l'acció

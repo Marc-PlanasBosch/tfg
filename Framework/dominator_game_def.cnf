@@ -1,0 +1,43 @@
+[GAME_INFO]
+game_name Dominator
+version 4.0
+description "Joc de Dominator - Framework Genèric"
+
+[GAME_PARAMETERS]
+nb_players 4
+nb_rounds 200
+nb_farmers 20
+nb_knights 10
+nb_witches 2
+farmers_health 100
+knights_health 200
+farmers_regen 30
+knights_regen 30
+damage_min 60
+damage_max 90
+rows 37
+cols 37
+
+[UNIT_TYPES]
+# Format: name symbol max_health initial_health regen_rate movement_range attack_range attack_power defense can_capture can_move can_attack [abilities...]
+farmer farmer 100 100 30 1 1 60 0 true true true
+knight knight 200 200 30 1 1 60 0 true true true
+witch witch 100 100 30 1 1 60 0 true true true
+
+[ACTION_TYPES]
+# Format: name id "params" description
+move 0 "direction" "Moure unitat en una direcció"
+attack 1 "direction" "Atacar unitat en una direcció"
+
+[MAP_SECTIONS]
+object_sections "farmers knights witches"
+unit_sections "farmer knight witch"
+
+[MAP_OBJECTS]
+Wall X
+Empty .
+
+[UNIT_PARSING]
+farmer "id x y health"
+knight "id x y health"
+witch "id x y health"

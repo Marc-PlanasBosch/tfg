@@ -39,6 +39,19 @@ void Action::throw_kamehame(int direction) {
     command(Movement(0, direction, Throwing));
 }
 
+void Action::move(int unit_id, int direction) {
+    command(Movement(unit_id, direction, Moving));
+}
+
+void Action::attack(int direction) {
+    // Per Dominator, utilitzem unit_id = 0 per simplicitat
+    command(Movement(0, direction, Moving));
+}
+
+void Action::attack(int unit_id, int direction) {
+    command(Movement(unit_id, direction, Moving));
+}
+
 bool Action::hasUnitActed(int unit_id) const {
     return units_acted_.find(unit_id) != units_acted_.end();
 }

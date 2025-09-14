@@ -5,6 +5,9 @@ CXXFLAGS = -std=c++17 -Wall -Wextra -O2 -g
 INCLUDES = -I./Core
 LIBS = 
 
+# Extensió d'executable (per Windows)
+EXE_EXT = .exe
+
 # Directoris
 CORE_DIR = Core
 EXAMPLES_DIR = Examples
@@ -21,8 +24,11 @@ EXAMPLES_OBJECTS = $(EXAMPLES_SOURCES:$(EXAMPLES_DIR)/%.cc=$(BUILD_DIR)/%.o)
 # Executables
 EXAMPLES = $(EXAMPLES_SOURCES:$(EXAMPLES_DIR)/%.cc=$(BUILD_DIR)/%$(EXE_EXT))
 
+# Executables principals
+DOMINATOR_EXE = $(BUILD_DIR)/dominator_game$(EXE_EXT)
+
 # Objectiu principal
-all: $(BUILD_DIR) $(EXAMPLES)
+all: $(BUILD_DIR) $(EXAMPLES) $(DOMINATOR_EXE)
 
 # Crear directori de build
 $(BUILD_DIR):
@@ -34,6 +40,10 @@ $(BUILD_DIR)/%.o: $(CORE_DIR)/%.cc
 
 # Compilar exemples
 $(BUILD_DIR)/%$(EXE_EXT): $(EXAMPLES_DIR)/%.cc $(CORE_OBJECTS)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $< $(CORE_OBJECTS) -o $@ $(LIBS)
+
+# Compilar dominator
+$(DOMINATOR_EXE): dominator_main.cc $(CORE_OBJECTS)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) $< $(CORE_OBJECTS) -o $@ $(LIBS)
 
 # Objectiu per executar l'exemple

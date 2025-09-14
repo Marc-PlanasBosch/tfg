@@ -6,6 +6,10 @@
 
 Board::Board(std::shared_ptr<GameDefinition> def) 
     : game_def(def), current_round(0), nb_players(0), rows(0), cols(0) {
+    // Inicialitzar camps per al format Dominator
+    land_ = std::vector<int>(0);
+    total_score_ = std::vector<int>(0);
+    cpu_status_ = std::vector<double>(0);
 }
 
 bool Board::loadFromFile(const std::string& filename) {
@@ -21,7 +25,81 @@ bool Board::loadFromFile(const std::string& filename) {
 }
 
 bool Board::loadFromStream(std::istream& is) {
-    return parseOriginalMap(is);
+    return parseMapFile(is);
+}
+
+bool Board::parseMapFile(std::istream& is) {
+    std::string line;
+    
+    // Llegir header del joc (format Dominator)
+    if (!std::getline(is, line)) return false;
+    
+    std::istringstream iss(line);
+    std::string game_name, version;
+    iss >> game_name >> version;
+    
+    // Debug: imprimir el que hem llegit
+    std::cerr << "Debug: llegint mapa - game_name='" << game_name << "', version='" << version << "'" << std::endl;
+    
+    // Llegir paràmetres del mapa
+    while (std::getline(is, line) && !line.empty()) {
+        std::cerr << "Debug: llegint paràmetre del mapa: '" << line << "'" << std::endl;
+        iss.clear();
+        iss.str(line);
+        std::string key, value;
+        iss >> key >> value;
+        
+        if (key == "nb_players") {
+            nb_players = std::stoi(value);
+            std::cerr << "Debug: nb_players = " << nb_players << std::endl;
+        }
+        else if (key == "rows") {
+            rows = std::stoi(value);
+            std::cerr << "Debug: rows = " << rows << std::endl;
+        }
+        else if (key == "cols") {
+            cols = std::stoi(value);
+            std::cerr << "Debug: cols = " << cols << std::endl;
+        }
+        else if (key == "FIXED") {
+            // Hem arribat al grid, saltar línia buida
+            std::cerr << "Debug: detectat grid FIXED" << std::endl;
+            std::getline(is, line); // Saltar línia buida després de FIXED
+            break;
+        }
+    }
+    
+    // Llegir grid del mapa
+    std::cerr << "Debug: llegint grid " << rows << "x" << cols << std::endl;
+    grid.clear();
+    grid.resize(rows, std::vector<Cell>(cols));
+    
+    for (int i = 0; i < rows; ++i) {
+        if (!std::getline(is, line)) {
+            std::cerr << "Error: No s'ha pogut llegir la línia " << i << " del grid" << std::endl;
+            return false;
+        }
+        
+        std::cerr << "Debug: llegint línia " << i << " del grid: '" << line << "' (longitud: " << line.length() << ")" << std::endl;
+        
+        if (static_cast<int>(line.length()) != cols) {
+            std::cerr << "Error: La línia " << i << " del grid té longitud incorrecta: " << line.length() << " (esperat: " << cols << ")" << std::endl;
+            return false;
+        }
+        
+        for (int j = 0; j < cols; ++j) {
+            if (line[j] == 'X') {
+                grid[i][j] = Cell(Wall, i, j);
+            } else if (line[j] == '.') {
+                grid[i][j] = Cell(Empty, i, j);
+            } else {
+                // Això pot ser una unitat, ho tractarem després
+                grid[i][j] = Cell(Empty, i, j);
+            }
+        }
+    }
+    
+    return true;
 }
 
 bool Board::parseOriginalMap(std::istream& is) {
@@ -71,6 +149,13 @@ bool Board::parseOriginalMap(std::istream& is) {
             is.seekg(-static_cast<int>(line.length() + 1), std::ios::cur);
             break;
         }
+    }
+    
+    // Si no hem llegit les dimensions, utilitzar les del game_def
+    if (rows == 0 || cols == 0) {
+        rows = game_def->getDefaultRows();
+        cols = game_def->getDefaultCols();
+        std::cerr << "Debug: utilitzant dimensions del game_def: " << rows << "x" << cols << std::endl;
     }
     
     // Si no hem arribat al final del fitxer, saltar línies buides
@@ -133,8 +218,16 @@ bool Board::initialize() {
     if (rows == 0) rows = game_def->getDefaultRows();
     if (cols == 0) cols = game_def->getDefaultCols();
     
+    // Inicialitzar camps per al format Dominator
+    land_ = std::vector<int>(nb_players, 0);
+    total_score_ = std::vector<int>(nb_players, 0);
+    cpu_status_ = std::vector<double>(nb_players, 0);
+    
     // Col·locar unitats inicials
     placeInitialUnits();
+    
+    // Calcular puntuacions inicials
+    computeScores();
     
     return true;
 }
@@ -190,6 +283,11 @@ std::shared_ptr<Board> Board::next(const std::vector<Action>& actions, Action& a
     new_board->position_to_unit = position_to_unit;
     new_board->unit_to_position = unit_to_position;
     
+    // Copiar camps del format Dominator
+    new_board->land_ = land_;
+    new_board->total_score_ = total_score_;
+    new_board->cpu_status_ = cpu_status_;
+    
     // Aplicar totes les accions
     for (const auto& action : actions) {
         new_board->applyAction(action);
@@ -197,6 +295,9 @@ std::shared_ptr<Board> Board::next(const std::vector<Action>& actions, Action& a
     
     // Actualitzar estat de les unitats
     new_board->updateUnitStates();
+    
+    // Recalcular puntuacions després dels moviments
+    new_board->computeScores();
     
     return new_board;
 }
@@ -217,12 +318,10 @@ void Board::print(std::ostream& os) const {
             if (grid[i][j].type == Wall) {
                 os << 'X';
             } else if (grid[i][j].unit != -1) {
-                // Imprimir símbol de la unitat
+                // Imprimir número del jugador propietari
                 const Unit* unit = getUnit(grid[i][j].unit);
                 if (unit) {
-                    if (unit->type == "Farmer") os << 'f';
-                    else if (unit->type == "Knight") os << 'k';
-                    else os << '?';
+                    os << unit->player_id;
                 } else {
                     os << '.';
                 }
@@ -416,5 +515,99 @@ void Board::parseUnitLine(const std::string& line) {
             grid[x][y].unit = units.size() - 1;
             grid[x][y].owner = player;
         }
+    }
+}
+
+void Board::printUnits(std::ostream& os) const {
+    // Imprimir totes les unitats en format Dominator
+    for (const auto& unit : units) {
+        // Format: tipus player_id x y health
+        char type_char = 'f'; // Default farmer
+        if (unit.type == "knight") type_char = 'k';
+        else if (unit.type == "witch") type_char = 'w';
+        else if (unit.type == "farmer") type_char = 'f';
+        
+        os << type_char << " " << unit.player_id << " " << unit.x << " " << unit.y << " " << unit.health << std::endl;
+    }
+}
+
+void Board::printRoundState(std::ostream& os) const {
+    os << std::endl << std::endl;
+    
+    // Imprimir grid
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
+            if (grid[i][j].type == Wall) {
+                os << 'X';
+            } else if (grid[i][j].owner == -1) {
+                os << '.';
+            } else if (grid[i][j].owner >= 0 && grid[i][j].owner < nb_players) {
+                os << grid[i][j].owner;
+            } else {
+                os << '.';
+            }
+        }
+        os << std::endl;
+    }
+    
+    os << std::endl;
+    
+    // Només imprimir informació de la ronda si no és la ronda 0
+    if (current_round > 0) {
+        os << "round " << current_round << std::endl;
+        
+        os << "land";
+        for (int i = 0; i < nb_players; ++i) {
+            os << " " << land_[i];
+        }
+        os << std::endl;
+        
+        os << "total_score";
+        for (int i = 0; i < nb_players; ++i) {
+            os << " " << total_score_[i];
+        }
+        os << std::endl;
+        
+        os << "status";
+        for (int i = 0; i < nb_players; ++i) {
+            os << " " << cpu_status_[i];
+        }
+        os << std::endl;
+    }
+    
+    // Imprimir unitats
+    for (const auto& unit : units) {
+        char type_char = 'f';
+        if (unit.type == "knight") type_char = 'k';
+        else if (unit.type == "witch") type_char = 'w';
+        else if (unit.type == "farmer") type_char = 'f';
+        
+        os << type_char << " " << unit.player_id << " " << unit.x << " " << unit.y << " " << unit.health << std::endl;
+    }
+    os << std::endl;
+}
+
+void Board::computeScores() {
+    // Inicialitzar land_ amb zeros
+    land_ = std::vector<int>(nb_players, 0);
+    
+    // Comptar terreny controlat per cada jugador
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
+            int owner = grid[i][j].owner;
+            if (owner >= 0 && owner < nb_players) {
+                ++land_[owner];
+            }
+        }
+    }
+    
+    // Actualitzar total_score_ (acumulatiu només si no és la primera vegada)
+    if (current_round > 0) {
+        for (int pl = 0; pl < nb_players; ++pl) {
+            total_score_[pl] += land_[pl];
+        }
+    } else {
+        // Primera vegada, copiar land_ a total_score_
+        total_score_ = land_;
     }
 }

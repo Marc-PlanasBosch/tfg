@@ -1,0 +1,19 @@
+# Makefile per dominator
+CXX = g++
+CXXFLAGS = -std=c++17 -Wall -Wextra -O2 -g
+INCLUDES = -I./Core
+LIBS = 
+
+CORE_OBJECTS = GameDefinition.o Action.o Board.o Game.o
+MAIN_SOURCE = dominator_main.cc
+EXECUTABLE = dominator_game
+
+all: $(EXECUTABLE)
+
+$(EXECUTABLE): $(MAIN_SOURCE) $(CORE_OBJECTS)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(MAIN_SOURCE) $(CORE_OBJECTS) -o $(EXECUTABLE) $(LIBS)
+
+clean:
+	rm -f $(EXECUTABLE) $(MAIN_SOURCE)
+
+.PHONY: all clean

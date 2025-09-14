@@ -33,6 +33,7 @@ bool GameDefinition::loadFromStream(std::istream& is) {
         // Detectar seccions
         if (line[0] == '[' && line[line.length()-1] == ']') {
             current_section = line.substr(1, line.length()-2);
+            std::cerr << "Debug: secció detectada: '" << current_section << "'" << std::endl;
             continue;
         }
         
