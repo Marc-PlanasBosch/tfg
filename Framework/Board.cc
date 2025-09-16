@@ -5,6 +5,7 @@
 
 #include <sstream>
 #include <fstream>
+#include <cstdlib>
 
 #include <cctype>
 
@@ -252,8 +253,8 @@ void Board::spawn_unit(int id) {
     
     int i, j;
     do {
-        i = mini + random() % (maxi-mini);
-        j = minj + random() % (maxj-minj);
+        i = mini + rand() % (maxi-mini);
+        j = minj + rand() % (maxj-minj);
     } while(cells_[i][j].type != Empty || cells_[i][j].unit != -1);
 
     if (pos_ok(u.pos.i,u.pos.j)) cells_[u.pos.i][u.pos.j].unit = -1;
@@ -479,7 +480,7 @@ bool Board::move (int player, int id, Dir d) {
         Unit& u2 = units_[c2.unit];
         if (u2.player == u1.player) return false; //Trying to attack your own unit
         
-        int damage = damage_min_ + random() % (damage_max_ - damage_min_);
+        int damage = damage_min_ + rand() % (damage_max_ - damage_min_);
         u2.health -= damage;
         if (u2.health <= 0) {
             u2.player = u1.player;

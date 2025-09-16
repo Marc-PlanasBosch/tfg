@@ -1,6 +1,7 @@
 #include "Player.hh"
 
 #include <cmath>
+#include <cstdlib>
 
 using namespace std;
 
@@ -46,12 +47,12 @@ struct PLAYER_NAME : public Player {
 
         const vector<int> f = farmers(me());
         for (int i = 0; i < sze(f); ++i) {
-            command(f[i], Dir(1 + random() % 4));
+            command(f[i], Dir(1 + rand() % 4));
         }
         
         const vector<int>& k = knights(me());
         for (int i = 0; i < sze(k); ++i) {
-            command(k[i], Dir(1 + random() % 4));
+            command(k[i], Dir(1 + rand() % 4));
         }
         
     }
@@ -64,4 +65,3 @@ struct PLAYER_NAME : public Player {
  * Do not modify the following line.
  */
 RegisterPlayer(PLAYER_NAME);
-

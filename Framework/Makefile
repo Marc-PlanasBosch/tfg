@@ -17,6 +17,7 @@ PROFILE  = 0 # Compile for profile (0 or 1)
 ############################
 
 # The following two lines will detect all your players (files matching "AI*.cc")
+# Exclude generate_game.cc as it's not needed for the main game
 
 PLAYERS_SRC = $(wildcard AI*.cc)
 PLAYERS_OBJ = $(patsubst %.cc, %.o, $(PLAYERS_SRC)) $(EXTRA_OBJS) $(DUMMY_OBJ)
@@ -44,8 +45,12 @@ clean:
 	rm -rf Game SecGame *.o *.exe Makefile.deps
 	rm -rf latex refman.pdf
 
-Game: BackTrace.o Utils.o PosDir.o Board.o Action.o Player.o Registry.o Game.o Main.o $(PLAYERS_OBJ)
-	$(CXX) $(LDFLAGS) $^ -o $@
+é demo: Game
+	./Game.exe Demo Demo Demo Demo < akamatsu.cnf > resultat.res
+	@echo "Partida completada! Resultat guardat a resultat.res"
+
+Game: BackTrace.o Utils.o PosDir.o Board.o Action.o Player.o Registry.o Game.o Main.o GameConfiguration.o $(PLAYERS_OBJ)
+	$(CXX) $(LDFLAGS) BackTrace.o Utils.o PosDir.o Board.o Action.o Player.o Registry.o Game.o Main.o GameConfiguration.o $(PLAYERS_OBJ) -o $@
 
 SecGame: BackTrace.o Utils.o PosDir.o Board.o Action.o Player.o Registry.o SecGame.o SecMain.o
 	$(CXX) $(LDFLAGS) $^ -o $@
