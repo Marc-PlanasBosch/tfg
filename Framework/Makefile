@@ -1,68 +1,72 @@
-# Makefile simple per al Framework Genèric de Jocs
 
-CXX = g++
-CXXFLAGS = -std=c++17 -Wall -Wextra -O2 -g
-INCLUDES = -I./Core
-LIBS = 
+# Uncomment the line for your platform to link the Dummy player to the executable
+#DUMMY_OBJ = AIDummy.o-LINUX32
+#DUMMY_OBJ = AIDummy.o-LINUX64
 
-# Extensió d'executable (per Windows)
-EXE_EXT = .exe
+# Add here any extra .o player files you want to link to the executable
+EXTRA_OBJS =
 
-# Directoris
-CORE_DIR = Core
-EXAMPLES_DIR = Examples
-BUILD_DIR = build
+# Config
+OPTIMIZE = 2 # Optimization level (0 to 3)
+DEBUG    = 0 # Compile for debugging (0 or 1)
+PROFILE  = 0 # Compile for profile (0 or 1)
+32BITS   = 0 # Produce 32 bits objects on 64 bits systems (0 or 1)
 
-# Fitxers font
-CORE_SOURCES = $(wildcard $(CORE_DIR)/*.cc)
-EXAMPLES_SOURCES = $(wildcard $(EXAMPLES_DIR)/*.cc)
 
-# Fitxers objecte
-CORE_OBJECTS = $(CORE_SOURCES:$(CORE_DIR)/%.cc=$(BUILD_DIR)/%.o)
-EXAMPLES_OBJECTS = $(EXAMPLES_SOURCES:$(EXAMPLES_DIR)/%.cc=$(BUILD_DIR)/%.o)
+# Do not edit past this line
+############################
 
-# Executables
-EXAMPLES = $(EXAMPLES_SOURCES:$(EXAMPLES_DIR)/%.cc=$(BUILD_DIR)/%$(EXE_EXT))
+# The following two lines will detect all your players (files matching "AI*.cc")
 
-# Executables principals
-DOMINATOR_EXE = $(BUILD_DIR)/dominator_game$(EXE_EXT)
+PLAYERS_SRC = $(wildcard AI*.cc)
+PLAYERS_OBJ = $(patsubst %.cc, %.o, $(PLAYERS_SRC)) $(EXTRA_OBJS) $(DUMMY_OBJ)
 
-# Objectiu principal
-all: $(BUILD_DIR) $(EXAMPLES) $(DOMINATOR_EXE)
+# Flags
 
-# Crear directori de build
-$(BUILD_DIR):
-	mkdir -p $(BUILD_DIR)
+ifeq ($(strip $(PROFILE)),1)
+	PROFILEFLAGS=-pg
+endif
+ifeq ($(strip $(DEBUG)),1)
+	DEBUGFLAGS=-DDEBUG -g -rdynamic
+endif
+ifeq ($(strip $(32BITS)),1)
+	ARCHFLAGS=-m32 -L/usr/lib32
+endif
 
-# Compilar classes base
-$(BUILD_DIR)/%.o: $(CORE_DIR)/%.cc
-	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
+CXXFLAGS = -std=c++0x -Wall -Wno-unused-variable $(ARCHFLAGS) $(PROFILEFLAGS) $(DEBUGFLAGS) -O$(strip $(OPTIMIZE)) #-Wextra
+LDFLAGS  = -std=c++0x -lm $(ARCHFLAGS) $(PROFILEFLAGS) $(DEBUGFLAGS) -O$(strip $(OPTIMIZE))
 
-# Compilar exemples
-$(BUILD_DIR)/%$(EXE_EXT): $(EXAMPLES_DIR)/%.cc $(CORE_OBJECTS)
-	$(CXX) $(CXXFLAGS) $(INCLUDES) $< $(CORE_OBJECTS) -o $@ $(LIBS)
+# Rules
 
-# Compilar dominator
-$(DOMINATOR_EXE): dominator_main.cc $(CORE_OBJECTS)
-	$(CXX) $(CXXFLAGS) $(INCLUDES) $< $(CORE_OBJECTS) -o $@ $(LIBS)
+all: Game 
 
-# Objectiu per executar l'exemple
-run: $(BUILD_DIR)/simple_game$(EXE_EXT)
-	cd $(BUILD_DIR) && ./simple_game
-
-# Netejar
 clean:
-	rm -rf $(BUILD_DIR)
+	rm -rf Game SecGame *.o *.exe Makefile.deps
+	rm -rf latex refman.pdf
 
-# Mostrar ajuda
-help:
-	@echo "Makefile del Framework Genèric de Jocs"
-	@echo ""
-	@echo "Objectius disponibles:"
-	@echo "  all        - Compila tot el framework i exemples"
-	@echo "  run        - Compila i executa l'exemple simple"
-	@echo "  clean      - Neteja els fitxers compilats"
-	@echo "  help       - Mostra aquesta ajuda"
+Game: BackTrace.o Utils.o PosDir.o Board.o Action.o Player.o Registry.o Game.o Main.o $(PLAYERS_OBJ)
+	$(CXX) $(LDFLAGS) $^ -o $@
 
-# Dependències
-.PHONY: all clean help run
+SecGame: BackTrace.o Utils.o PosDir.o Board.o Action.o Player.o Registry.o SecGame.o SecMain.o
+	$(CXX) $(LDFLAGS) $^ -o $@
+
+%.exe: %.o BackTrace.o Utils.o PosDir.o Board.o Action.o Player.o Registry.o SecGame.o SecMain.o
+	$(CXX) $(LDFLAGS)  $^ -o $@
+
+#%.o: %.cc
+#	$(CXX) $(CXXFLAGS) $(CFLAGS) $< -c -o $@
+
+obj:
+	mkdir obj
+
+Makefile.deps: *.cc
+	$(CXX) $(CXXFLAGS) -MM *.cc > Makefile.deps
+
+doxygen:
+	doxygen
+	cd latex && make
+	cp latex/refman.pdf .
+
+include Makefile.deps
+
+
