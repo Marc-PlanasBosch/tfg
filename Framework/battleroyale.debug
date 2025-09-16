@@ -32,7 +32,7 @@ info: loading game
 [DEBUG]   secgame = false
 [DEBUG]   names = ? ? ? ?
 [DEBUG]   round = 0
-[DEBUG] Seed establida: 1758028718
+[DEBUG] Seed establida: 1758033059
 [DEBUG] Processant configuració del mapa...
 [DEBUG]   nb_farmers = 15
 [DEBUG]   nb_knights = 15
@@ -48,6 +48,47 @@ info: loading game
 [DEBUG] secgame = false
 [DEBUG] names llegits correctament
 [DEBUG] round final = 0
+[DEBUG] Primera paraula: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+[DEBUG] No hi ha generator, llegint mapa directe...
+[DEBUG] Llegint mapa fix de 36x35 començant per la primera línia
+[DEBUG] Línia 0: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+[DEBUG] Línia 1: X.................................X
+[DEBUG] Línia 2: X.................................X
+[DEBUG] Línia 3: X.................................X
+[DEBUG] Línia 4: X.................................X
+[DEBUG] Línia 5: X.................................X
+[DEBUG] Línia 6: X.................................X
+[DEBUG] Línia 7: X.................................X
+[DEBUG] Línia 8: X.................................X
+[DEBUG] Línia 9: X.................................X
+[DEBUG] Línia 10: X.................................X
+[DEBUG] Línia 11: X..........XXXXXX.XXXXXX..........X
+[DEBUG] Línia 12: X..........X...........X..........X
+[DEBUG] Línia 13: X..........X...........X..........X
+[DEBUG] Línia 14: X..........X...........X..........X
+[DEBUG] Línia 15: X..........X...........X..........X
+[DEBUG] Línia 16: X..........X...........X..........X
+[DEBUG] Línia 17: X.................................X
+[DEBUG] Línia 18: X..........X...........X..........X
+[DEBUG] Línia 19: X..........X...........X..........X
+[DEBUG] Línia 20: X..........X...........X..........X
+[DEBUG] Línia 21: X..........X...........X..........X
+[DEBUG] Línia 22: X..........X...........X..........X
+[DEBUG] Línia 23: X..........XXXXXX.XXXXXX..........X
+[DEBUG] Línia 24: X.................................X
+[DEBUG] Línia 25: X.................................X
+[DEBUG] Línia 26: X.................................X
+[DEBUG] Línia 27: X.................................X
+[DEBUG] Línia 28: X.................................X
+[DEBUG] Línia 29: X.................................X
+[DEBUG] Línia 30: X.................................X
+[DEBUG] Línia 31: X.................................X
+[DEBUG] Línia 32: X.................................X
+[DEBUG] Línia 33: X.................................X
+[DEBUG] Línia 34: X.................................X
+[DEBUG] Línia 35: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+[DEBUG] Mapa fix llegit correctament
+[DEBUG] Llegint score i status...
 [DEBUG] Board::generateUnitsDynamically() - Generant unitats dinàmicament
 [DEBUG]   - Jugador 0:
 [DEBUG]     * farmerss: 15 unitats

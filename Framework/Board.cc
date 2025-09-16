@@ -41,8 +41,8 @@ Board::Board (istream& is, bool secgame, int seed) {
     string key, value;
     int round_value = 0;
     
-    // Llegir fins a trobar "round" (inici del mapa)
-    while (is >> key && key != "round") {
+    // Llegir fins a trobar "round" o "FIXED" (inici del mapa)
+    while (is >> key && key != "round" && key != "FIXED") {
         if (key == "names") {
             // Cas especial: names té 4 valors
             string name1, name2, name3, name4;
@@ -60,10 +60,14 @@ Board::Board (istream& is, bool secgame, int seed) {
     if (key == "round") {
         is >> round_value;
         std::cerr << "[DEBUG]   round = " << round_value << std::endl;
-    } else {
-        // Si no hi ha "round", començar des del principi
+    } else if (key == "FIXED") {
+        // Si trobem "FIXED", no hi ha round, començar des del principi
         round_value = 0;
-        std::cerr << "[DEBUG] No s'ha trobat 'round', començant des del principi" << std::endl;
+        std::cerr << "[DEBUG] Trobat 'FIXED', començant des del principi" << std::endl;
+    } else {
+        // Si no hi ha "round" ni "FIXED", començar des del principi
+        round_value = 0;
+        std::cerr << "[DEBUG] No s'ha trobat 'round' ni 'FIXED', començant des del principi" << std::endl;
     }
     
     // Establir seed si s'ha proporcionat
@@ -160,55 +164,30 @@ Board::Board (istream& is, bool secgame, int seed) {
     std::cerr << "[DEBUG] round final = " << round_ << std::endl;
     assert(round_ < nb_rounds_);
 
-    cells_ = vector< vector<Cell> >(rows_, vector<Cell>(cols_));
-    for (int i = 0; i < rows_; ++i) {
-        for (int j = 0; j < cols_; ++j) {
-            cells_[i][j].unit = -1;
-            cells_[i][j].pos = Pos(i, j);
-            cells_[i][j].owner = -1;
-            cells_[i][j].type = Empty;
-            char c;
-            is >> c;
-            c = toupper(c);
-            //cerr << c;
-            switch (c) {
-                case '0':
-                    cells_[i][j].owner = 0;
-                    break;
-                case '1':
-                    cells_[i][j].owner = 1; 
-                    break;
-                case '2': 
-                    cells_[i][j].owner = 2;
-                    break;
-                case '3': 
-                    cells_[i][j].owner = 3; 
-                    break;
-                case '.': 
-                    break; //Empty cell
-                case 'X': 
-                    cells_[i][j].type = Wall;
-                    break;
-                default:
-                    cerr << "Unexpected '" << c << "' in board definition" << endl;
-                    assert(false);
-            } 
-        }
-        //cerr << endl;
-    }
+    // Ara que tenim les dimensions, llegir generator i gestionar el mapa
+    // Primer, llegir una paraula per veure si és "FIXED" o un generator
+    string first_word;
+    is >> first_word;
+    std::cerr << "[DEBUG] Primera paraula: " << first_word << std::endl;
     
-    is >> s;
-    assert(s == "score");
-    score_ = vector<int>(nb_players_);
-    for (int i = 0; i < nb_players_; ++i) {
-        is >> score_[i];
-    }
-
-    is >> s;
-    assert(s == "status");
-    status_ = vector<double>(nb_players_);
-    for (int i = 0; i < nb_players_; ++i) {
-        is >> status_[i];
+    if (first_word == "FIXED") {
+        // Mapa fix: llegir directament el mapa
+        std::cerr << "[DEBUG] Llegint mapa fix..." << std::endl;
+        readFixedMap(is);
+    } else if (first_word == "GENERATOR1" || first_word == "GENERATOR2" || first_word == "GENERATOR3") {
+        // Mapa generat: llegir paràmetres i generar
+        std::cerr << "[DEBUG] Generant mapa amb " << first_word << "..." << std::endl;
+        vector<int> params;
+        int param;
+        while (is >> param) {
+            params.push_back(param);
+        }
+        generateMap(first_word, params);
+    } else {
+        // No hi ha generator, és un mapa directe (com Battle Royale)
+        std::cerr << "[DEBUG] No hi ha generator, llegint mapa directe..." << std::endl;
+        // Llegir el mapa directament (ja hem llegit la primera línia)
+        readFixedMapFromFirstLine(is, first_word);
     }
     
 
@@ -320,6 +299,261 @@ void Board::spawn_unit(int id) {
         cells_[i][j].owner = u.player;
     }
     
+}
+
+// Implementació de mètodes per gestionar mapes
+
+void Board::readFixedMap(istream& is) {
+    std::cerr << "[DEBUG] Llegint mapa fix de " << rows_ << "x" << cols_ << std::endl;
+    
+    // Inicialitzar el grid
+    cells_ = vector< vector<Cell> >(rows_, vector<Cell>(cols_));
+    
+    // Llegir cada línia del mapa
+    for (int i = 0; i < rows_; ++i) {
+        string line;
+        is >> line;
+        std::cerr << "[DEBUG] Línia " << i << ": " << line << std::endl;
+        
+        // Verificar que la línia té la longitud correcta
+        if ((int)line.size() != cols_) {
+            std::cerr << "[ERROR] Línia " << i << " té longitud " << line.size() 
+                      << " però esperàvem " << cols_ << std::endl;
+            assert(false);
+        }
+        
+        // Processar cada caràcter de la línia
+        for (int j = 0; j < cols_; ++j) {
+            char c = line[j];
+            Cell& cell = cells_[i][j];
+            cell.pos = Pos(i, j);
+            cell.unit = -1;
+            
+            switch (c) {
+                case '0':
+                case '1':
+                case '2':
+                case '3':
+                    cell.owner = c - '0';
+                    cell.type = Empty;
+                    break;
+                case '.':
+                    cell.owner = -1;
+                    cell.type = Empty;
+                    break;
+                case 'X':
+                    cell.owner = -1;
+                    cell.type = Wall;
+                    break;
+                default:
+                    std::cerr << "[ERROR] Caràcter inesperat '" << c << "' a la posició (" << i << "," << j << ")" << std::endl;
+                    assert(false);
+            }
+        }
+    }
+    
+    std::cerr << "[DEBUG] Mapa fix llegit correctament" << std::endl;
+    
+    // Llegir score i status que venen després del mapa (si existeixen)
+    string s;
+    if (is >> s && s == "score") {
+        std::cerr << "[DEBUG] Llegint score i status..." << std::endl;
+        score_ = vector<int>(nb_players_);
+        for (int i = 0; i < nb_players_; ++i) {
+            is >> score_[i];
+        }
+
+        is >> s;
+        assert(s == "status");
+        status_ = vector<double>(nb_players_);
+        for (int i = 0; i < nb_players_; ++i) {
+            is >> status_[i];
+        }
+    } else {
+        std::cerr << "[DEBUG] No hi ha score/status, inicialitzant per defecte..." << std::endl;
+        // Inicialitzar score i status per defecte
+        score_ = vector<int>(nb_players_, 0);
+        status_ = vector<double>(nb_players_, 0.0);
+    }
+}
+
+void Board::readFixedMapFromFirstLine(istream& is, const string& first_line) {
+    std::cerr << "[DEBUG] Llegint mapa fix de " << rows_ << "x" << cols_ << " començant per la primera línia" << std::endl;
+    
+    // Inicialitzar el grid
+    cells_ = vector< vector<Cell> >(rows_, vector<Cell>(cols_));
+    
+    // Processar la primera línia que ja hem llegit
+    std::cerr << "[DEBUG] Línia 0: " << first_line << std::endl;
+    
+    // Verificar que la línia té la longitud correcta
+    if ((int)first_line.size() != cols_) {
+        std::cerr << "[ERROR] Línia 0 té longitud " << first_line.size() 
+                  << " però esperàvem " << cols_ << std::endl;
+        assert(false);
+    }
+    
+    // Processar cada caràcter de la primera línia
+    for (int j = 0; j < cols_; ++j) {
+        char c = first_line[j];
+        Cell& cell = cells_[0][j];
+        cell.pos = Pos(0, j);
+        cell.unit = -1;
+        
+        switch (c) {
+            case '0':
+            case '1':
+            case '2':
+            case '3':
+                cell.owner = c - '0';
+                cell.type = Empty;
+                break;
+            case '.':
+                cell.owner = -1;
+                cell.type = Empty;
+                break;
+            case 'X':
+                cell.owner = -1;
+                cell.type = Wall;
+                break;
+            default:
+                std::cerr << "[ERROR] Caràcter inesperat '" << c << "' a la posició (0," << j << ")" << std::endl;
+                assert(false);
+        }
+    }
+    
+    // Llegir les línies restants del mapa
+    for (int i = 1; i < rows_; ++i) {
+        string line;
+        is >> line;
+        std::cerr << "[DEBUG] Línia " << i << ": " << line << std::endl;
+        
+        // Verificar que la línia té la longitud correcta
+        if ((int)line.size() != cols_) {
+            std::cerr << "[ERROR] Línia " << i << " té longitud " << line.size() 
+                      << " però esperàvem " << cols_ << std::endl;
+            assert(false);
+        }
+        
+        // Processar cada caràcter de la línia
+        for (int j = 0; j < cols_; ++j) {
+            char c = line[j];
+            Cell& cell = cells_[i][j];
+            cell.pos = Pos(i, j);
+            cell.unit = -1;
+            
+            switch (c) {
+                case '0':
+                case '1':
+                case '2':
+                case '3':
+                    cell.owner = c - '0';
+                    cell.type = Empty;
+                    break;
+                case '.':
+                    cell.owner = -1;
+                    cell.type = Empty;
+                    break;
+                case 'X':
+                    cell.owner = -1;
+                    cell.type = Wall;
+                    break;
+                default:
+                    std::cerr << "[ERROR] Caràcter inesperat '" << c << "' a la posició (" << i << "," << j << ")" << std::endl;
+                    assert(false);
+            }
+        }
+    }
+    
+    std::cerr << "[DEBUG] Mapa fix llegit correctament" << std::endl;
+    
+    // Llegir score i status que venen després del mapa (si existeixen)
+    string s;
+    if (is >> s && s == "score") {
+        std::cerr << "[DEBUG] Llegint score i status..." << std::endl;
+        score_ = vector<int>(nb_players_);
+        for (int i = 0; i < nb_players_; ++i) {
+            is >> score_[i];
+        }
+
+        is >> s;
+        assert(s == "status");
+        status_ = vector<double>(nb_players_);
+        for (int i = 0; i < nb_players_; ++i) {
+            is >> status_[i];
+        }
+    } else {
+        std::cerr << "[DEBUG] No hi ha score/status, inicialitzant per defecte..." << std::endl;
+        // Inicialitzar score i status per defecte
+        score_ = vector<int>(nb_players_, 0);
+        status_ = vector<double>(nb_players_, 0.0);
+    }
+}
+
+void Board::generateMap(const string& generator, const vector<int>& params) {
+    std::cerr << "[DEBUG] Generant mapa amb " << generator << " i " << params.size() << " paràmetres" << std::endl;
+    
+    // Inicialitzar el grid amb parets a les vores
+    cells_ = vector< vector<Cell> >(rows_, vector<Cell>(cols_));
+    
+    // Crear parets a les vores
+    for (int i = 0; i < rows_; ++i) {
+        for (int j = 0; j < cols_; ++j) {
+            Cell& cell = cells_[i][j];
+            cell.pos = Pos(i, j);
+            cell.unit = -1;
+            cell.owner = -1;
+            
+            if (i == 0 || i == rows_-1 || j == 0 || j == cols_-1) {
+                cell.type = Wall;
+            } else {
+                cell.type = Empty;
+            }
+        }
+    }
+    
+    // Implementar generators simples (per ara només GENERATOR1)
+    if (generator == "GENERATOR1") {
+        int num_walls = (params.size() > 0) ? params[0] : 0;
+        std::cerr << "[DEBUG] Generant " << num_walls << " parets aleatòries" << std::endl;
+        
+        int walls_placed = 0;
+        int attempts = 0;
+        const int max_attempts = 1000;
+        
+        while (walls_placed < num_walls && attempts < max_attempts) {
+            int i = 2 + rand() % (rows_ - 4);
+            int j = 2 + rand() % (cols_ - 4);
+            
+            // Verificar que no hi ha parets properes
+            bool ok = true;
+            for (int x = -1; x <= 1; ++x) {
+                for (int y = -1; y <= 1; ++y) {
+                    if (cells_[i+x][j+y].type == Wall) {
+                        ok = false;
+                        break;
+                    }
+                }
+                if (!ok) break;
+            }
+            
+            if (ok) {
+                cells_[i][j].type = Wall;
+                walls_placed++;
+            }
+            attempts++;
+        }
+        
+        std::cerr << "[DEBUG] Col·locades " << walls_placed << " parets de " << num_walls << " intentades" << std::endl;
+    } else if (generator == "GENERATOR2" || generator == "GENERATOR3") {
+        // Per ara, deixar el mapa buit (només vores)
+        std::cerr << "[DEBUG] Generator " << generator << " no implementat, utilitzant mapa buit" << std::endl;
+    } else {
+        std::cerr << "[ERROR] Generator no suportat: " << generator << std::endl;
+        assert(false);
+    }
+    
+    std::cerr << "[DEBUG] Mapa generat correctament" << std::endl;
 }
 
 // Implementacions dels mètodes dinàmics

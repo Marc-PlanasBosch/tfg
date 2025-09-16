@@ -1,22 +1,13 @@
-game_name Dominator
-version 4.0
+game_name battleroyale
+version v1.1
 
 # Configuració d'unitats
 farmers:
-  health 100
-  regen 30
+  health 60
+  regen 0
 
 knights:
-  health 200
-  regen 30
-  damage_min 20
-  damage_max 40
-
-witches:
-  health 80
-  regen 10
-  magic_cost 50
-  curse_damage 40
-  damage_min 15
-  damage_max 35
-
+  health 120
+  regen 15
+  damage_min 10
+  damage_max 20

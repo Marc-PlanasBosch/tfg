@@ -389,6 +389,13 @@ public:
     UnitType getUnitTypeFromString(const string& type_str) const;
     string getUnitTypeString(UnitType type) const;
     bool isUnitTypeValid(const string& type) const;
+    
+    /**
+     * Mètodes per gestionar mapes
+     */
+    void readFixedMap(istream& is);
+    void readFixedMapFromFirstLine(istream& is, const string& first_line);
+    void generateMap(const string& generator, const vector<int>& params);
 
 };
 

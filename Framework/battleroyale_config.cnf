@@ -11,7 +11,3 @@ knights:
   regen 15
   damage_min 10
   damage_max 20
-
-# Configuració global
-min_damage 10
-max_damage 20
