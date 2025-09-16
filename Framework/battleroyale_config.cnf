@@ -1,0 +1,17 @@
+game_name battleroyale
+version v1.1
+
+# Configuració d'unitats
+farmers:
+  health 60
+  regen 0
+
+knights:
+  health 120
+  regen 15
+  damage_min 10
+  damage_max 20
+
+# Configuració global
+min_damage 10
+max_damage 20

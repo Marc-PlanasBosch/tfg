@@ -1,0 +1,22 @@
+game_name Dominator
+version 4.0
+
+# Configuració d'unitats
+farmers:
+  health 100
+  regen 30
+
+knights:
+  health 200
+  regen 30
+  damage_min 20
+  damage_max 40
+
+witches:
+  health 80
+  regen 10
+  magic_cost 50
+  curse_damage 40
+  damage_min 15
+  damage_max 35
+
